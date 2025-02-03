@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votação Vámo Acordar</title>
+    <style>
+        /* CSS ORIGINAL */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            text-align: center;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+        body.fade-out::before {
+            opacity: 1;
+        }
+        body.fade-in::before {
+            opacity: 0;
+        }
+        .header {
+            background-color: #4a0083;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .header .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header .search {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 40px;
+            color: #000;
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        .vote-list {
+            margin-top: 30px;
+        }
+        .vote-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f5f5f5;
+            margin: 15px auto;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            cursor: pointer;
+            width: 100%;
+            max-width: 500px;
+            height: 140px;
+            box-sizing: border-box;
+        }
+        .vote-item:hover {
+            border-color: #000;
+        }
+        .vote-item.selected {
+            background: #4a0083;
+            color: white;
+            border-color: #4a0083;
+        }
+        .vote-item .text {
+            font-size: 18px;
+            text-align: left;
+            flex: 1;
+            padding: 0 20px;
+            line-height: 1.4;
+        }
+        .vote-item.selected .text {
+            font-weight: bold;
+        }
+        .vote-item .image-placeholder {
+            width: 140px;
+            height: 140px;
+            min-width: 140px;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+        .vote-item .image-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .vote-button-container {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .vote-button-container p {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .vote-button {
+            background: #4a0083;
+            color: white;
+            font-size: 20px;
+            padding: 15px 60px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .vote-button:hover {
+            transform: scale(1.05);
+        }
+        .vote-result-container {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .vote-result-container h2 {
+            font-size: 26px;
+            color: #4a0083;
+            margin-bottom: 25px;
+        }
+        .vote-result-container img {
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 3px solid #4a0083;
+        }
+        .vote-result-container p {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 25px;
+        }
+        .vote-again-button {
+            background-color: #4a0083;
+            color: white;
+            font-size: 18px;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        .vote-again-button:hover {
+            background-color: #3a0069;
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+        .fade-in { animation: fadeIn 0.5s ease-in-out forwards; }
+
+        /* NOVO CSS ADMIN */
+        .admin-gear {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+            width: 40px;
+            height: 40px;
+            z-index: 1001;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        .admin-gear.show {
+            opacity: 1;
+        }
+        .admin-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(0,0,0,0.3);
+            z-index: 1002;
+            max-width: 90%;
+            width: 500px;
+        }
+        .admin-password-input {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .admin-results table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .admin-results th,
+        .admin-results td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 2px solid #eee;
+        }
+        .admin-results th {
+            background-color: #4a0083;
+            color: white;
+            font-weight: bold;
+        }
+        .admin-results tr:hover {
+            background-color: #f9f9f9;
+        }
+        .total-row {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">gshow</div>
+        <input type="text" class="search" placeholder="Buscar">
+    </div>
+    <div class="container">
+        <h1>Votação : Quem deve vencer a terceira edição do vâmo acordar?</h1>
+        <p class="subtitle">Vote para definir em quem deve vencer a terceira temporada do Vâmo Acordar!</p>
+        
+        <div class="vote-list"></div>
+
+        <div class="vote-button-container">
+            <p class="vote-text"></p>
+            <button class="vote-button">Votar</button>
+        </div>
+
+        <div class="vote-result-container">
+            <h2>Seu voto foi registrado!</h2>
+            <img class="result-image" src="" alt="Imagem do Voto">
+            <p class="result-text"></p>
+            <button class="vote-again-button">Votar Novamente</button>
+        </div>
+    </div>
+
+    <!-- Elementos do Admin -->
+    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSIjNGExMDgzIj48cGF0aCBkPSJNMTIgMGMtMS4wODUgMC0yLjE4Ni4xODMtMy4yMDYuNTQ5LTEuMDE3LjM2Ni0xLjkyLjg5LTIuNzUyIDEuNTEzbC0uMDE0LjAxM0w0Ljc1IDMuNDQzbC0uNDY0LS4yMjNDMy41MTcgMy4wMyAzLjEwOCAzIDIuNzU5IDMuMDA5bC0uMjE0LjAwN0gyLjI1SDJ2MS41MDRsLjAwNy4yMDRjLjAyNS40NjcuMTc1Ljk0OC42NDkgMS40MjJsOS4xOTMgOS4xOTNMMyAybDIuMjkzIDIuMjkzIDEuNDEtMS40MSAxLjQxMiAxLjQxMi0xLjQxIDEuNDEgMS40MSAxLjQxLTEuNDEgMS40MSAxLjQxIDEuNDEtMS40MSAxLjQxIDEuNDEyIDEuNDEyLTEuNDEgMS40MUwxOC41NTkgM0wyMSA1LjQ0bC0xLjQxNS0xLjQxNS0uMDA0LS4wMDRjLS42MjQtLjYyNC0xLjE0Ny0xLjczNS0xLjUxMy0yLjc1M0MyMS44MTcgMi4xODYgMjIgMS4wODUgMjIgMEgxMnpNMi4wMDEgMTUuNzFsNS4yOTIgNS4yOTJjLS42MDguNjA4LS42MDggMS41MzUgMCAyLjE0Mi4yODUuMjg1LjYzNi40NDMgMS4wMDIuNTY1Ljc0Ni4yNDggMS42MzYuMzkgMi43MDcuMzkzTDIgMjJ2LTEuNzQ1Yy0uMDA3LS4zNS0uMDIxLS43NTktLjIyNC0xLjE2NWwtLjIyMy0uNDY0TDIuMDAxIDE1Ljcxek0yLjAwMSAxMi45OTJsNC4wMDEgNC4wMDF2LThsLTQuMDAxIDMuOTk5ek0yMiAyMS45OTRoLTEuNzQ1Yy0xLjA3MS0uMDAzLTEuOTYxLS4xNDUtMi43MDctLjM5My0xLjQxOS0uNDczLTIuNTk5LTEuNjUzLTMuMDcyLTMuMDcyQzE0LjE0NSAxNy44MSAxNCAxNi45MTkgMTQgMTUuODVjMC0xLjA2OS4xNDUtMS45Ni40MjEtMi42NjYuNDczLTEuNDE5IDEuNjUzLTIuNTk5IDMuMDcyLTMuMDcyLjQxOS0uMTQgLjg2LS4yMTIgMS4zMjktLjI1M0wyMiA1LjQ0djE2LjU1NHoiLz48L3N2Zz4=" 
+         class="admin-gear" 
+         id="adminGear"
+         title="Painel Administrativo">
+
+    <div class="admin-panel" id="adminPanel">
+        <h2>🔒 Painel Administrativo</h2>
+        <input type="password" 
+               class="admin-password-input" 
+               placeholder="Digite a senha de administrador"
+               id="adminPassword">
+        <div class="admin-results" id="adminResults"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc,
+            getDoc,
+            increment 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Configuração do Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkPaNwrFgOTdFQyx7-sPGE3p66JiSFt2M",
+            authDomain: "gshowvot.firebaseapp.com",
+            projectId: "gshowvot",
+            storageBucket: "gshowvot.appspot.com",
+            messagingSenderId: "323813359903",
+            appId: "1:323813359903:web:0987cf7a967a98d553f02a",
+            measurementId: "G-R69723G5MJ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Configuração do Admin
+        const ADMIN_PASSWORD = "gshow@2024";
+        let adminAuthenticated = false;
+
+        // Elementos DOM
+        const adminGear = document.getElementById('adminGear');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminPassword = document.getElementById('adminPassword');
+        const adminResults = document.getElementById('adminResults');
+
+        // Opções originais
+        const options = [
+            {
+                name: "Rafah",
+                image: "https://media.discordapp.net/attachments/1113447841931722863/1335732587296981013/Rafah.png?ex=67a13d69&is=679febe9&hm=a56a2cdc16793c8ebc387f56face2c4ae8dac464ac90d9b03056d870b32498a2&=&format=webp&quality=lossless&width=560&height=420"
+            },
+            {
+                name: "Marie",
+                image: "https://media.discordapp.net/attachments/1113447841931722863/1335746148580986912/mARIEVOT.png?ex=67a14a0a&is=679ff88a&hm=915d3f1b6e4b7702a9e248bee1bb694822879923f62f2db6d2d2bdb2a0320811&=&format=webp&quality=lossless&width=404&height=420"
+            },
+            {
+                name: "Penélope",
+                image: "https://media.discordapp.net/attachments/1113447841931722863/1335750979789914162/pnelopeVot.png?ex=67a14e8a&is=679ffd0a&hm=8d91b68d2c36264a45a41b88fb55fe7d5d0a161c7443e9460e6cbc4e81b40a65&=&format=webp&quality=lossless&width=404&height=420"
+            },
+            {
+                name: "Thur",
+                image: "https://media.discordapp.net/attachments/1113447841931722863/1335746112824283136/thurvot.png?ex=67a14a02&is=679ff882&hm=3f99951db9f13cc38d35be67db7b549cf222c2db16a499e5c0d78acb54d8a3ce&=&format=webp&quality=lossless&width=404&height=420"
+            }
+        ];
+
+        // Elementos de votação
+        const voteList = document.querySelector('.vote-list');
+        const voteButtonContainer = document.querySelector('.vote-button-container');
+        const voteResultContainer = document.querySelector('.vote-result-container');
+        const voteText = document.querySelector('.vote-text');
+        const resultText = document.querySelector('.result-text');
+        const resultImage = document.querySelector('.result-image');
+
+        // Funções auxiliares
+        function embaralharArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function criarElementoVoto(option) {
+            const voteItem = document.createElement('div');
+            voteItem.className = 'vote-item';
+            voteItem.innerHTML = `
+                <div class="text">${option.name}</div>
+                <div class="image-placeholder">
+                    <img src="${option.image}" alt="${option.name}">
+                </div>
+            `;
+
+            voteItem.addEventListener('click', () => {
+                document.querySelectorAll('.vote-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                voteItem.classList.add('selected');
+                voteButtonContainer.style.display = 'block';
+                voteText.innerHTML = `Você selecionou a opção <strong>${option.name}</strong>, clique em votar para computar o seu voto`;
+                
+                window.scrollTo({
+                    top: voteButtonContainer.offsetTop,
+                    behavior: "smooth"
+                });
+            });
+
+            return voteItem;
+        }
+
+        function renderizarOpcoes(opcoes) {
+            voteList.innerHTML = '';
+            opcoes.forEach(option => {
+                voteList.appendChild(criarElementoVoto(option));
+            });
+        }
+
+        // Funções do Firebase
+        async function votar(candidato) {
+            try {
+                const candidatoRef = doc(db, "Votos", candidato);
+                await setDoc(candidatoRef, {
+                    votos: increment(1),
+                    ultimaAtualizacao: new Date()
+                }, { merge: true });
+                await exibirVotos();
+            } catch (error) {
+                console.error("Erro ao registrar voto:", error);
+            }
+        }
+
+        async function getAllVotes() {
+            const votes = {};
+            for (const option of options) {
+                const candidatoRef = doc(db, "Votos", option.name);
+                const docSnap = await getDoc(candidatoRef);
+                votes[option.name] = docSnap.exists() ? docSnap.data().votos : 0;
+            }
+            return votes;
+        }
+
+        async function exibirVotos() {
+            const votes = await getAllVotes();
+            document.querySelectorAll('.text').forEach(element => {
+                const name = element.textContent.split(' -')[0];
+                if (votes[name] !== undefined) {
+                    element.textContent = `${name} - Votos: ${votes[name]}`;
+                }
+            });
+        }
+
+        // Funções do Admin
+        async function showAdminResults() {
+            const votes = await getAllVotes();
+            const total = Object.values(votes).reduce((a, b) => a + b, 0);
+            
+            let html = `<table>
+                <tr><th>Candidato</th><th>Votos</th><th>Percentual</th></tr>`;
+            
+            for (const [candidate, count] of Object.entries(votes)) {
+                const percent = total > 0 ? ((count / total) * 100).toFixed(1) : 0;
+                html += `<tr>
+                    <td>${candidate}</td>
+                    <td>${count}</td>
+                    <td>${percent}%</td>
+                </tr>`;
+            }
+            
+            html += `<tr class="total-row">
+                <td><strong>Total</strong></td>
+                <td><strong>${total}</strong></td>
+                <td>100%</td>
+            </tr></table>`;
+            
+            adminResults.innerHTML = html;
+            adminPanel.style.display = 'block';
+        }
+
+        // Event Listeners
+        document.querySelector('.vote-button').addEventListener('click', async () => {
+            const selected = document.querySelector('.vote-item.selected');
+            if (selected) {
+                document.body.classList.add('fade-out');
+                setTimeout(async () => {
+                    const candidatoVotado = selected.querySelector('.text').textContent.split(' -')[0];
+                    
+                    // Atualiza interface
+                    voteList.style.display = 'none';
+                    voteButtonContainer.style.display = 'none';
+                    voteResultContainer.style.display = 'block';
+                    resultImage.src = selected.querySelector('img').src;
+                    resultText.innerHTML = `Voto confirmado para:<br><strong>${candidatoVotado}</strong>`;
+                    
+                    // Processa voto e embaralha
+                    await votar(candidatoVotado);
+                    renderizarOpcoes(embaralharArray([...options]));
+                    
+                    // Finaliza animação
+                    document.body.classList.remove('fade-out');
+                    document.body.classList.add('fade-in');
+                    setTimeout(() => document.body.classList.remove('fade-in'), 400);
+                }, 400);
+            }
+        });
+
+        document.querySelector('.vote-again-button').addEventListener('click', () => {
+            document.body.classList.add('fade-out');
+            setTimeout(() => {
+                voteResultContainer.style.display = 'none';
+                voteList.style.display = 'block';
+                document.querySelectorAll('.vote-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                document.body.classList.remove('fade-out');
+                document.body.classList.add('fade-in');
+                setTimeout(() => document.body.classList.remove('fade-in'), 500);
+            }, 500);
+        });
+
+        // Eventos do Admin - CORREÇÃO APLICADA
+        let keyCombination = [];
+        document.addEventListener('keydown', (e) => {
+            keyCombination.push(e.key.toLowerCase());
+            if (keyCombination.length > 3) keyCombination.shift();
+            
+            if (
+                keyCombination.includes('control') &&
+                keyCombination.includes('alt') &&
+                keyCombination.includes('shift')
+            ) {
+                adminGear.classList.add('show');
+                keyCombination = [];
+            }
+        });
+
+        adminGear.addEventListener('click', () => {
+            if (!adminAuthenticated) {
+                adminPanel.style.display = 'block';
+                adminPassword.focus();
+            } else {
+                showAdminResults();
+            }
+        });
+
+        adminPassword.addEventListener('keyup', async (e) => {
+            if (e.key === 'Enter') {
+                if (adminPassword.value === ADMIN_PASSWORD) {
+                    adminAuthenticated = true;
+                    adminPanel.style.display = 'none';
+                    showAdminResults();
+                } else {
+                    alert('Senha incorreta!');
+                    adminPassword.value = '';
+                }
+            }
+        });
+
+        // Inicialização
+        renderizarOpcoes(options);
+    </script>
+</body>
+</html>
